@@ -299,6 +299,8 @@ where s.age < 30;
 - UPDATE 쿼리로 수정 - 소스
 - UPDATE 쿼리 실행 시 WHERE 절 없이 실행 주의 할 것!
 
+![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260916_121442_image.png)
+
 ##### 데이터 삭제
 
 - DELETE 쿼리로 삭제
@@ -348,15 +350,15 @@ insert into students (name)
 values ('최민식');
 ```
 
+![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260916_145220_image.png)
+
 ##### NULL 조회 쿼리
 
 - `Where 컬럼 is null // is not null`
 
-
 ### 테이블 설계
 
 - 일반적으로 DB설계, 테이블 설계 통칭
-
 
 #### 필요 개념
 
@@ -368,7 +370,6 @@ values ('최민식');
 - 테이블 관계
 
 학생과 과목수강 관리 테이블 설계
-
 
 ### 테이블 설계란?
 
@@ -383,9 +384,9 @@ values ('최민식');
   - 담당 강사
   - 수강 신청일
 
+![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260916_160815_image.png)
 
 - 엑셀에서는 데이터를 제대로 관리하기 힘들다
-
 
 ##### 좋은 테이블 설계
 
@@ -396,11 +397,55 @@ values ('최민식');
 - 잘못된 데이터가 들어가지 않도록 제약조건을 사용한다
 - 조회, 수정이 이해하기 쉬운 구조여야한다
 
-
 ##### 학생 테이블 컬럼 데이터타입 선택
 
 
-| 구분     | 설명          | 데이터 타입         |
-| -------- | ------------- | ------------------- |
-| 학생번호 | 학생을 구분   | INT, BIGINT 중      |
-| 학생이름 | 문자열로 추가 | VARCHAR(n), TEXT 중 |
+| 구분                 | 설명                      | 데이터 타입                |
+| -------------------- | ------------------------- | -------------------------- |
+| 학생번호`id`         | 학생을 구분               | `INT`, BIGINT, NUMERIC 중 |
+| 학생이름`name`       | 문자열로 추가, 입력       | `VARCHAR(n)`ex)50, TEXT 중 |
+| 이메일`email`        | 문자열, 선택으로 입력     | `VARCHAR(n)`ex)200, TEXT   |
+| 나이`age`            | 숫자, 150살 이하로만 제약 | `INT`...                   |
+| 전공`major`          | 문자열,                   | `VARCHAR(n)`ex)50, TEXT   |
+| 등록일자`created_at` | 학생 정보를 입력한 일시   | DATE,`TIMESTAMP` 중        |
+
+- 정확한 숫자는 numeric, 긴 글은 text, 날짜만 필요하면 data, 참/거짓은 boolean
+
+
+#### 제약 조건
+
+##### 1. 기본키
+
+테이블에서 각 행(row) 구분하는 대표값. Primary Key(PK) - **Unique에 Not Null**
+
+- 중복 불가 !
+- 비어있을 수 없다 !
+- 한 행을 대표
+- 다른 테이블에서 참조한다
+
+
+PostgreSQL은 `generated always as identity` 숫자 타입의 자동증가, `Primary Key`가 기본키를 지정한다
+
+```sql
+id int generated always as identity Primary Key
+```
+
+MySQL에서 auto_increment, Oracle에서 identity로 문법이 다름.
+
+
+##### 2. 외래키
+
+다른 테이블의 기본키를 창조하는 컬럼. Foreign Key(FK)
+
+```plaintext
+Students(학생)
+- id : 학생아이디 PK
+- name : 학생이름
+
+Enrollments(수강)
+- id : 수강아이디 PK
+- students_id : 학생아이디 FK
+- course_name : 수강명
+```
+
+![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260916_171157_image.png)
