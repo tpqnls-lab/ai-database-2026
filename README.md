@@ -411,7 +411,6 @@ values ('최민식');
 
 - 정확한 숫자는 numeric, 긴 글은 text, 날짜만 필요하면 data, 참/거짓은 boolean
 
-
 #### 제약 조건
 
 ##### 1. 기본키
@@ -423,7 +422,6 @@ values ('최민식');
 - 한 행을 대표
 - 다른 테이블에서 참조한다
 
-
 PostgreSQL은 `generated always as identity` 숫자 타입의 자동증가, `Primary Key`가 기본키를 지정한다
 
 ```sql
@@ -431,7 +429,6 @@ id int generated always as identity Primary Key
 ```
 
 MySQL에서 auto_increment, Oracle에서 identity로 문법이 다름.
-
 
 ##### 2. 외래키
 
@@ -449,3 +446,154 @@ Enrollments(수강)
 ```
 
 ![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260916_171157_image.png)
+
+## 3일차
+
+### 추가 쿼리
+
+- 테이블 수정 쿼리 - 이미 만들어진 상태의 테이블을 수정하는 쿼리
+
+```sql
+-- 테이블 컬럼 사이즈 수정
+alter table students
+alter column email type varchar(100);
+```
+
+- 이외 제약조건 수정, 이름 수정, 불필요한 컬럼 삭제 등 수정 쿼리 작업
+
+
+### 제약조건
+
+#### PK/FK 관계
+
+
+- students 부모테이블 - enrollments 자식테이블
+
+#### NOT NULL 제약조건
+
+- 해당 컬럼은 반드시 값이 들어가야 함
+
+```sql
+name varchar(50) not null
+```
+
+- 아래의 쿼리는 오류가 발생
+  ```sql
+  -- 데이터 삽입
+  insert into students (age, major)
+  values (23, '경영학과');
+  ```
+
+
+students 테이블에 name은 not-null 제약조건으로 반드시 입력해야하는데 현재 없기 때문에 오류
+
+
+- 이전에 생성된 컬럼을 NOT NULL로 변경하는 쿼리
+
+```sql
+ALTER TABLE public.students ALTER COLUMN email SET NOT NULL;
+```
+
+- 오류 화면
+
+
+- NOU NULL로 변경불가 할 때 생기는 오류 화면
+- 이전 테이블에 새 컬럼을 추가할때 NOT NULL 로만은 생성 불가. NULL로는 생성 가능
+
+
+#### UNIQUE 제약조건
+
+- 중복이 허용되지 않는 제약조건
+- 보통 이메일이 다른 사용자와 중복은 허용하지 않으나, 내 이메일은 다른 걸로 변경가능
+
+```sql
+ALTER TABLE public.students ADD CONSTRAINT uk_students_email UNIQUE (email);
+```
+
+
+
+#### CHECK 제약조건
+
+- 값이 특정 조건을 만족해야만 저장되는 제약조건
+
+  - 초등학교 학년 : 1-6
+  - 대학교 학년 :1-4
+  - 나이 : 0세 이상, 200세 이하
+  - 금액 : 1000원 이상
+- INT 타입은 -21억 ~ 21억까지 수를 저장, 모두 허용하면 학년에 음수나 0, 1~4 이상의 다른 수 입력 가능
+- 이를 방지해서 정확한 데이터만 입력
+
+```sql
+--학년 컬럼 추가
+ALTER TABLE public.students ADD grade int NULL;
+```
+
+- 체크 제약조건 추가
+
+```sql
+ALTER TABLE public.students ADD CONSTRAINT ck_students_grade CHECK (grade > 0 and grade <=4);
+
+```
+
+
+#### DEFAULT 제약조건
+
+- 값을 입력하지 않ㄴ으면 자동으로 들어가는 기본값. default
+
+```sql
+stock int default 0
+created_at timestamp default current_timestamp
+```
+
+- 수정 쿼리
+
+```sql
+ALTER TABLE public.products ALTER COLUMN category SET DEFAULT '미정';
+```
+
+
+### 테이블 모델링
+
+관계형 DB에는 테이블간 관계에 몇 가지 관계성이 존재
+
+
+| 관계   | 설명                                           | 예시                     |
+| ------ | ---------------------------------------------- | ------------------------ |
+| 일대다 | 부모 테이블 한 행이 자식 테이블 여러 행과 연결 | 학생과 수강 신청 관계    |
+| 일대일 | 테이블 한 행이 자식 테이블 한 행과 연결        | 사용자와 사용자 상세정보 |
+| 다대다 | 부모테이블 여러행이 자식테이블 여러행과 연결   | 학생과 과목              |
+
+- 다대다 관계는 DB에서 구현 불가. 일대다 / 일대다 관계로 분리해서 구현
+
+
+- 학생 한명은 여러 과목을 수강할 수 있음
+- 과목 하나에는 여러 학생이 수강 할 수 있음
+- 학생 테이블 주요정보
+
+  - 이름, 이메일, 나이, 전공
+- 과목 테이블 주요 정보
+
+  - 타이틀, 교강사, 시수
+- 수강 신청 주요정보
+
+  - 수강 학생정보 구분값, 과목 정보 구분값
+
+
+#### 모델링 툴
+
+https://www.erdcloud.com/
+
+- ERD(Entity Relations
+
+
+- 학생 과목 수강정리 ERD 정리
+
+
+### JOIN
+
+관계형 데이터베이스에서 여러개로 나눈 테이블의 정보를 하나로 합쳐서 조회하는 것
+
+
+### 트랜잭션
+
+- 커밋, 롤백
