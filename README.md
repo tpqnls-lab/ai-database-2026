@@ -461,11 +461,11 @@ alter column email type varchar(100);
 
 - 이외 제약조건 수정, 이름 수정, 불필요한 컬럼 삭제 등 수정 쿼리 작업
 
-
 ### 제약조건
 
 #### PK/FK 관계
 
+![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260916_173253_image.png)
 
 - students 부모테이블 - enrollments 자식테이블
 
@@ -484,9 +484,9 @@ name varchar(50) not null
   values (23, '경영학과');
   ```
 
+![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260917_102524_image.png)
 
 students 테이블에 name은 not-null 제약조건으로 반드시 입력해야하는데 현재 없기 때문에 오류
-
 
 - 이전에 생성된 컬럼을 NOT NULL로 변경하는 쿼리
 
@@ -496,10 +496,10 @@ ALTER TABLE public.students ALTER COLUMN email SET NOT NULL;
 
 - 오류 화면
 
+![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260917_102915_image.png)
 
 - NOU NULL로 변경불가 할 때 생기는 오류 화면
 - 이전 테이블에 새 컬럼을 추가할때 NOT NULL 로만은 생성 불가. NULL로는 생성 가능
-
 
 #### UNIQUE 제약조건
 
@@ -510,7 +510,7 @@ ALTER TABLE public.students ALTER COLUMN email SET NOT NULL;
 ALTER TABLE public.students ADD CONSTRAINT uk_students_email UNIQUE (email);
 ```
 
-
+![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260917_104714_image.png)
 
 #### CHECK 제약조건
 
@@ -535,7 +535,6 @@ ALTER TABLE public.students ADD CONSTRAINT ck_students_grade CHECK (grade > 0 an
 
 ```
 
-
 #### DEFAULT 제약조건
 
 - 값을 입력하지 않ㄴ으면 자동으로 들어가는 기본값. default
@@ -551,7 +550,6 @@ created_at timestamp default current_timestamp
 ALTER TABLE public.products ALTER COLUMN category SET DEFAULT '미정';
 ```
 
-
 ### 테이블 모델링
 
 관계형 DB에는 테이블간 관계에 몇 가지 관계성이 존재
@@ -565,6 +563,7 @@ ALTER TABLE public.products ALTER COLUMN category SET DEFAULT '미정';
 
 - 다대다 관계는 DB에서 구현 불가. 일대다 / 일대다 관계로 분리해서 구현
 
+![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260917_121636_Gemini_Generated_Image_y2ssbxy2ssbxy2ss.png)
 
 - 학생 한명은 여러 과목을 수강할 수 있음
 - 과목 하나에는 여러 학생이 수강 할 수 있음
@@ -578,22 +577,116 @@ ALTER TABLE public.products ALTER COLUMN category SET DEFAULT '미정';
 
   - 수강 학생정보 구분값, 과목 정보 구분값
 
-
 #### 모델링 툴
 
 https://www.erdcloud.com/
 
 - ERD(Entity Relations
 
+![](https://github.com/hugoMGSung/ai-database-2026/raw/main/assets/20260917_150846_image.png)
 
 - 학생 과목 수강정리 ERD 정리
 
-
 ### JOIN
 
-관계형 데이터베이스에서 여러개로 나눈 테이블의 정보를 하나로 합쳐서 조회하는 것
+관계형 데이터베이스에서 `여러개로 나눈 테이블의 정보를 하나로 합쳐서 조회`하는 것
+
+#### JOIN 필요 이유
+
+관계형 DB는 데이터를 하나의 통 테이블에 넣지 않고, 주제에 따라서 여러 테이블에 나누어서 저장함
+
+- 학생, 과목, 수강 테이블에서
+  - 수강신청 정보 - 학생테이블과 과목테이블을 수강테이블의 구분키 연결 조회
+
+INNER JOIN
+
+- 조건이 서로 일치하는 데이터만 조회
+- 테이블 관계 확인하고 관련있는 PK와 KF로 조인할 것!
+- 같은 의미를 가진 컬럼들이 존재하므로 select *보다는 select 컬럼을 나열
+- 같은 단어를 가진 컬럼명은 "별명"으로 변경할 것
+
+```sql
+select s.id "학생번호", s.name "학생이름", s.email "이메일", s.major"전공",
+	e.id"수강번호", e.enrolled_at"수강일자", 
+	c.id"과목번호", c.title"과목명", c.instructor"교강사명", c.hours"총시간"
+from students s 
+inner join enrollments e
+on s.id = e.student_id 
+inner join courses c 
+on c.id = e.course_id;
+
+```
+
+#### JOIN 후 조건으로 조회
+
+- 학생 번호로 조회, 특정 전공으로 조회 등...
+- WHERE 절 사용
+
+
+#### JOIN 후 정렬
+
+- ORDER BY ASC/DESC
+
+
+#### OUTER JOIN
+
+- 조건이 일치하지 않아도 조회
+- 기준이 LEFT, RIGHT 두가지 존재
+- LEFT OUTER JOIN 왼쪽 테이블 기준으로 오른쪽 테이블에 연결되지 않은 데이터도 나오도록 조회
+- RIGHT OUTER JOIN - LEFT OUTER JOIN의 반대
+
+#### 집계함수
+
+- 통계를 위해서 합산, 평균, 최소/최대 등 집계함수를 사용하여 계산하는 쿼리
+- count(*), sum(컬럼), avg(컬럼), min(컬럼), max(컬럼) - 숫자로 된 컬럼
+- group by 사용 시 select * 사용불가. 필요 컬럼과 집계함수 반드시 사용
 
 
 ### 트랜잭션
 
-- 커밋, 롤백
+- 여러 SQL 작업을 하나의 단위로 묶은 기능, 모든 작업이 성공하면 COMMIT, 오류가 발생하면 ROLLBACK 하는 개념
+- ACID
+  - A 원자성 : 작업 전체가 반영되거나 취소된다
+  - C 일관성 : 트랜잭션 전후에 데이터 규칙이 유지된다
+  - I 고립성 : 트랙잰션 동안은 밀폐되어야 한다
+  - D 지속성 : COMMIT 된 데이터는 장애가 발생해도 보존된다
+
+
+#### 트랜잭션 필요 키워드 명령어
+
+- 트랜잭션 시작
+
+```sql
+begin;
+begin transaction;
+
+```
+
+- 확정
+
+```sql
+commit;
+```
+
+- 취소/복귀/롤백
+
+```sql
+rollback;
+```
+
+
+#### 트랜잭션 설정
+
+- PostgreSQL 기본 트랜잭션이 실행
+- DBeaver에서 트랜잭션 설정을 변경
+- 메뉴 - 데이터베이스 - 트랜잭션 모드 - Manual Commit으로 변경 후 작업
+
+
+#### 트랜잭션 실습
+
+- Auto-Commit 상태에서 테이블 생성
+- Manual-Commit으로 변경
+- `begin`(DBeaver에서 자동으로 트랜잭션 시작), `commit`, `rollback`
+
+
+[다음](./README2.md)
